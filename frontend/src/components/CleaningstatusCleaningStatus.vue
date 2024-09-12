@@ -16,11 +16,11 @@
         </v-card-title >        
 
         <v-card-text>
-            <Number v-if="editMode" label="HousekeepingId" v-model="value.housekeepingId" :editMode="editMode" :inputUI="''"/>
-            <Number label="AccomodationId" v-model="value.accomodationId" :editMode="editMode" :inputUI="''"/>
-            <Number label="HousekeeperId" v-model="value.housekeeperId" :editMode="editMode" :inputUI="''"/>
+            <!--Number v-if="editMode" label="HousekeepingId" v-model="value.housekeepingId" :editMode="editMode" :inputUI="''"/-->
+            <Number label="Accomodation Id" v-model="value.accomodationId" :editMode="editMode" :inputUI="''"/>
+            <Number label="Housekeeper Id" v-model="value.housekeeperId" :editMode="editMode" :inputUI="''"/>
             <Boolean label="Cleaned" v-model="value.cleaned" :editMode="editMode" :inputUI="''"/>
-            <Number label="RoomId" v-model="value.roomId" :editMode="editMode" :inputUI="''"/>
+            <Number label="Room Id" v-model="value.roomId" :editMode="editMode" :inputUI="''"/>
         </v-card-text>
 
         <v-card-actions>

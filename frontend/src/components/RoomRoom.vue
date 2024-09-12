@@ -9,18 +9,18 @@
         </template>
 
         <v-card-title v-if="value._links">
-            Room # {{decode(value._links.self.href.split("/")[value._links.self.href.split("/").length - 1])}}
+            Room Registration # {{decode(value._links.self.href.split("/")[value._links.self.href.split("/").length - 1])}}
         </v-card-title >
         <v-card-title v-else>
-            Room
+            Room Registration
         </v-card-title >        
 
         <v-card-text>
-            <Number v-if="editMode" label="RoomId" v-model="value.roomId" :editMode="editMode" :inputUI="''"/>
+            <!--Number v-if="editMode" label="RoomId" v-model="value.roomId" :editMode="editMode" :inputUI="''"/-->
+            <String label="Room Name" v-model="value.roomName" :editMode="editMode" :inputUI="''"/>
+            <String label="Room Type" v-model="value.roomType" :editMode="editMode" :inputUI="''"/>
             <Boolean label="Cleaned" v-model="value.cleaned" :editMode="editMode" :inputUI="''"/>
-            <String label="RoomName" v-model="value.roomName" :editMode="editMode" :inputUI="''"/>
-            <String label="RoomType" v-model="value.roomType" :editMode="editMode" :inputUI="''"/>
-            <Boolean label="CheckedIn" v-model="value.checkedIn" :editMode="editMode" :inputUI="''"/>
+            <Boolean label="Checked In" v-model="value.checkedIn" :editMode="editMode" :inputUI="''"/>
         </v-card-text>
 
         <v-card-actions>

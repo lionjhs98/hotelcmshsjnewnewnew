@@ -7,16 +7,16 @@
 
         <v-card-text>
             <div>
-                <Number label="HousekeepingId" v-model="item.housekeepingId" :editMode="editMode" @change="change" />
+                <!--Number label="HousekeepingId" v-model="item.housekeepingId" :editMode="editMode" @change="change" /-->
             </div>
             <div>
-                <Number label="HousekeeperId" v-model="item.housekeeperId" :editMode="editMode" @change="change" />
+                <Number label="Housekeeper Id" v-model="item.housekeeperId" :editMode="editMode" @change="change" />
             </div>
             <div>
-                <Number label="AccomodationId" v-model="item.accomodationId" :editMode="editMode" @change="change" />
+                <Number label="Accomodation Id" v-model="item.accomodationId" :editMode="editMode" @change="change" />
             </div>
             <div>
-                <Number label="RoomId" v-model="item.roomId" :editMode="editMode" @change="change" />
+                <Number label="Room Id" v-model="item.roomId" :editMode="editMode" @change="change" />
             </div>
         </v-card-text>
     </v-card>

@@ -10,7 +10,8 @@ require('./GlobalStyle.css');
 const axios = require("axios").default;
 
 // backend host url
-axios.backend = "https://8088-lionjhs98-hotelcmshsjne-jjou8fafpme.ws-us116.gitpod.io";
+axios.backend = null;
+//"https://8088-lionjhs98-hotelcmshsjne-jjou8fafpme.ws-us116.gitpod.io";
 
 try {
   // URL 생성 시 오류가 발생할 수 있으므로 예외 처리

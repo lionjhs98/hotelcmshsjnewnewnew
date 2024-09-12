@@ -8,6 +8,7 @@ spring:
 
 spring:
   profiles: default
+  
   jpa:
     properties:
       hibernate:

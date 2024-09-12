@@ -9,17 +9,17 @@
         </template>
 
         <v-card-title v-if="value._links">
-            Accomodation # {{decode(value._links.self.href.split("/")[value._links.self.href.split("/").length - 1])}}
+            Room Reservation # {{decode(value._links.self.href.split("/")[value._links.self.href.split("/").length - 1])}}
         </v-card-title >
         <v-card-title v-else>
-            Accomodation
+            Room Reservation
         </v-card-title >        
 
         <v-card-text>
-            <Number v-if="editMode" label="AccomodationId" v-model="value.accomodationId" :editMode="editMode" :inputUI="''"/>
-            <Number label="RoomId" v-model="value.roomId" :editMode="editMode" :inputUI="''"/>
-            <Date label="CheckInTime" v-model="value.checkInTime" :editMode="editMode" :inputUI="''"/>
-            <Date label="CheckOutTime" v-model="value.checkOutTime" :editMode="editMode" :inputUI="''"/>
+            <!--Number v-if="editMode" label="AccomodationId" v-model="value.accomodationId" :editMode="editMode" :inputUI="''"/-->
+            <Number label="Room Id" v-model="value.roomId" :editMode="editMode" :inputUI="''"/>
+            <Date label="Check In Date" v-model="value.checkInTime" :editMode="editMode" :inputUI="''"/>
+            <Date label="Check Out Date" v-model="value.checkOutTime" :editMode="editMode" :inputUI="''"/>
         </v-card-text>
 
         <v-card-actions>

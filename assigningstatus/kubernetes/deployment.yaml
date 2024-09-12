@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: assigningstatus
-          image: "username/assigningstatus:latest"
+          image: "hueylee/assigningstatus:240912"
           ports:
             - containerPort: 8080
           readinessProbe:

@@ -28,6 +28,7 @@ public class CleaningStatus {
 
     @PostPersist
     public void onPostPersist() {
+        // 이벤트 발행 -> CleaningStatusUpdated (Publish)
         CleaningStatusUpdated cleaningStatusUpdated = new CleaningStatusUpdated(
             this
         );
