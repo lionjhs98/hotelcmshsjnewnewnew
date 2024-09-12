@@ -18,6 +18,6 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: "hueylee/ui:stable1"
+          image: "hueylee/ui:stable2"
           ports:
             - containerPort: 8080

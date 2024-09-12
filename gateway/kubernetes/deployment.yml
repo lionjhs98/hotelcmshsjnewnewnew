@@ -16,6 +16,6 @@ spec:
     spec:
       containers:
         - name: gateway
-          image: "hueylee/gateway:2409121"
+          image: "hueylee/gateway:240913"
           ports:
             - containerPort: 8080

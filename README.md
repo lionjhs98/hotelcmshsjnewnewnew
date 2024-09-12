@@ -104,4 +104,263 @@
 ```
 mvn spring-boot:run
 ```
+## CQRS
+**1. 숙박 정보 조회**
 
+Host가 숙박 정보를 등록하면, 내역을 조회할 수 있도록 CQRS로 구현하였습니다. 
+- 비동기식으로 처리되어 발행된 이벤트 기반 Kafka를 통해 수신/처리되어 별도 Table에 관리합니다.
+- Table 모델링
+
+| Column | Description | Type |
+| --- | --- | --- |
+| accomdationId | 숙박ID | Long |
+| roomId | 객실ID | Long |
+| checkInTime | 체크인 날짜 | Date |
+| checkOutTime | 체크아웃 날짜 | Date |
+
+ReservationStatusViewHandler.java 통해 구현
+
+    @Autowired
+    private ReservationStatusRepository reservationStatusRepository;
+
+    @StreamListener(KafkaProcessor.INPUT)
+    public void whenCheckInInfoRegistered_then_CREATE_1(
+        @Payload CheckInInfoRegistered checkInInfoRegistered
+    ) {
+        try {
+            if (!checkInInfoRegistered.validate()) return;
+
+            // view 객체 생성
+            ReservationStatus reservationStatus = new ReservationStatus();
+            // view 객체에 이벤트의 Value 를 set 함
+            reservationStatus.setAccomodationid(
+                checkInInfoRegistered.getAccomodationId()
+            );
+            reservationStatus.setRoomId(checkInInfoRegistered.getRoomId());
+
+            Date utilDate = checkInInfoRegistered.getCheckInTime(); // Date 타입의 변수
+            reservationStatus.setCheckInTime(utilDate);
+
+            // view 레파지 토리에 save
+            reservationStatusRepository.save(reservationStatus);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+**2. 하우스키퍼 배정 정보 조회**
+
+Host가 하우스키퍼를 배정하면, 내역을 조회할 수 있도록 구현했습니다.
+- Table 모델링
+
+| Column | Description | Type |
+| --- | --- | --- |
+| housekeepingId | 하우스키핑ID | Long |
+| housekeeperId | 하우스키퍼ID | Long |
+| accomdationId | 숙박ID | Long |
+| roomId | 객실ID | Long |
+
+HousekeepingAssignmentInformationViewHandler.java 통해 구현
+
+    @Autowired
+    private HousekeepingAssignmentInformationRepository housekeepingAssignmentInformationRepository;
+
+    @StreamListener(KafkaProcessor.INPUT)
+    public void whenHousekeeperAssigned_then_CREATE_1 (@Payload HousekeeperAssigned housekeeperAssigned) {
+        try {
+
+            if (!housekeeperAssigned.validate()) return;
+
+            // view 객체 생성
+            HousekeepingAssignmentInformation housekeepingAssignmentInformation = new HousekeepingAssignmentInformation();
+            // view 객체에 이벤트의 Value 를 set 함
+            housekeepingAssignmentInformation.setHousekeepingId(housekeeperAssigned.getHousekeepingId());
+            housekeepingAssignmentInformation.setHousekeeperId(housekeeperAssigned.getHousekeeperId());
+            housekeepingAssignmentInformation.setAccomodationId(housekeeperAssigned.getAccomodationId());
+            // view 레파지 토리에 save
+            housekeepingAssignmentInformationRepository.save(housekeepingAssignmentInformation);
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
+**3. 하우스키퍼 청소 업무 조회**
+
+Housekeeper가 해야 하는 청소 업무를 확인할 수 있도록 구현했습니다.
+- Table 모델링
+
+| Column | Description | Type |
+| --- | --- | --- |
+| housekeepingId | 하우스키핑ID | Long |
+| accomdationId | 숙박ID | Long |
+| housekeeperId | 하우스키퍼ID | Long |
+| cleaned | 청소여부 | Boolean |
+| roomId | 객실ID | Long |
+
+HousekeeperTaskListViewHandler.java 통해 구현
+
+    @Autowired
+    private HousekeeperTaskListRepository housekeeperTaskListRepository;
+
+    @StreamListener(KafkaProcessor.INPUT)
+    public void whenHousekeeperAssigned_then_CREATE_1 (@Payload HousekeeperAssigned housekeeperAssigned) {
+        try {
+
+            if (!housekeeperAssigned.validate()) return;
+
+            // view 객체 생성
+            HousekeeperTaskList housekeeperTaskList = new HousekeeperTaskList();
+            // view 객체에 이벤트의 Value 를 set 함
+            housekeeperTaskList.setHousekeepingId(housekeeperAssigned.getHousekeepingId());
+            housekeeperTaskList.setHousekeeperId(housekeeperAssigned.getHousekeeperId());
+            housekeeperTaskList.setAccomodationId(housekeeperAssigned.getAccomodationId());
+            // view 레파지 토리에 save
+            housekeeperTaskListRepository.save(housekeeperTaskList);
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
+
+### 동기식 호출(Sync)
+-
+1. Room
+
+```
+@FeignClient(name = "assigningstatus", url = "${api.url.assigningstatus}")
+public interface AssignHouseKeeperService {
+    @RequestMapping(method = RequestMethod.POST, path = "/assignHouseKeepers")
+    public void assignHousekeeper(
+        @RequestBody AssignHouseKeeper assignHouseKeeper
+    );
+}
+```
+
+
+```
+hotelcmshsjnewnew.external.AssignHouseKeeper assignHouseKeeper = new hotelcmshsjnewnew.external.AssignHouseKeeper();
+        assignHouseKeeper.setAccomodationId(accomodationId);
+        assignHouseKeeper.setRoomId(roomId);
+
+```
+
+
+### 비동기식 호출(Kafka)
+비동기식 호출을 하는 경우는 CheckInfoRegistered(Reservation -> Room), HousekeeperAssigned(AsssigningStatus->CleaningStatus), CleaningStatusUpdated(CleaningStatus -> Room) 세 가지 경우입니다. 
+<u>**비동기식 통신은 각 서비스가 독립적으로 동작할 수 있으며, 응답을 기다릴 필요가 없고, 최종 일관성만 보장되면 되는 경우에 적합하기 때문에 세 가지 경우를 비동기식 호출로 구성**</u>했습니다.
+
+1. **CheckInfoRegistered(Reservation -> Room)**
+> Reservation에서 객실 예약을 생성하면, Room에 저장되어있는 객실이 Checkin 완료, 및 Clean이 필요한 상태로 업데이트되어야 합니다. 즉각적인 응답이 필요 없고, 각 서비스는 독립적으로 동작할 수 있기 때문에 비동기 통신 방식을 선택했습니다.
+- Room / infra / **PolicyHandler.java**
+```
+@StreamListener(
+        value = KafkaProcessor.INPUT,
+        condition = "headers['type']=='CheckInInfoRegistered'"
+    )
+    public void wheneverCheckInInfoRegistered_CheckinStatusUpdate(
+        @Payload CheckInInfoRegistered checkInInfoRegistered
+    ) {
+        CheckInInfoRegistered event = checkInInfoRegistered;
+        System.out.println(
+            "\n\n##### listener CheckinStatusUpdate : " +
+            checkInInfoRegistered +
+            "\n\n"
+        );
+
+        // Sample Logic //
+        Room.checkinStatusUpdate(event);
+    }
+```
+- Room / domain / **Room.java**
+```
+public static void checkinStatusUpdate(
+        CheckInInfoRegistered checkInInfoRegistered
+    ) { 
+        System.out.println("CheckInInfoRegistered Object" + checkInInfoRegistered.toString());
+        repository().findById(checkInInfoRegistered.getRoomId()).ifPresent(room -> {
+            room.setCheckedIn(true); // 체크인 상태 업데이트
+            room.setCleaned(false); // 청소 상태 업데이트
+            System.out.println("checkInInfoRegistered : " + room.toString());
+            repository().save(room);
+        });
+
+    }
+```
+
+2. **HousekeeperAssigned(AsssigningStatus->CleaningStatus)**
+> 호스트가 AssigningStatus에서 하우스키퍼를 배정하면, 하우스키퍼가 확인할 수 있는 페이지인 CleaningStatus에 배정 정보가 새롭게 생성되어야 합니다. 즉각적인 응답이 필요 없고, 각 서비스는 독립적으로 동작할 수 있기 때문에 비동기 통신 방식을 선택했습니다.
+- Cleaningstatus / infra / **PolicyHandler.java**
+```
+@StreamListener(
+        value = KafkaProcessor.INPUT,
+        condition = "headers['type']=='HousekeeperAssigned'"
+    )
+    public void wheneverHousekeeperAssigned_UpdateAssigningStatus(
+        @Payload HousekeeperAssigned housekeeperAssigned
+    ) {
+        HousekeeperAssigned event = housekeeperAssigned;
+        System.out.println(
+            "\n\n##### listener UpdateAssigningStatus : " +
+            housekeeperAssigned +
+            "\n\n"
+        );
+
+        // Sample Logic //
+        CleaningStatus.updateAssigningStatus(event);
+    }
+```
+- Cleaningstatus / domain / CleaningStatus.java
+```
+public static void updateAssigningStatus(
+        HousekeeperAssigned housekeeperAssigned
+    ) {
+        //implement business logic here:
+
+        CleaningStatus cleaningStatus = new CleaningStatus();
+        cleaningStatus.accomodationId = housekeeperAssigned.getAccomodationId();
+        cleaningStatus.housekeeperId = housekeeperAssigned.getHousekeeperId();
+        cleaningStatus.roomId = housekeeperAssigned.getRoomId();
+        cleaningStatus.cleaned = false;
+        repository().save(cleaningStatus);
+
+    }
+```
+
+
+3. **CleaningStatusUpdated(CleaningStatus -> Room)**
+> 하우스키퍼가 CleaningStatus에서 자신에게 배정된 청소건을 완료하고 청소완료로 상태를 수정하면, Room에 저장되어있는 해당 객실이 Clean이 완료된 상태로 업데이트되어야 합니다. 즉각적인 응답이 필요 없고, 각 서비스는 독립적으로 동작할 수 있기 때문에 비동기 통신 방식을 선택했습니다.
+- Room / infra / **PolicyHandler.java**
+```
+@StreamListener(
+        value = KafkaProcessor.INPUT,
+        condition = "headers['type']=='CleaningStatusUpdated'"
+    )
+    public void wheneverCleaningStatusUpdated_CleaningStatusUpdate(
+        @Payload CleaningStatusUpdated cleaningStatusUpdated
+    ) {
+        CleaningStatusUpdated event = cleaningStatusUpdated;
+        System.out.println(
+            "\n\n##### listener CleaningStatusUpdate : " +
+            cleaningStatusUpdated +
+            "\n\n"
+        );
+
+        // Sample Logic //
+        Room.cleaningStatusUpdate(event);
+    }
+```
+- Room / domain / **Room.java**
+```
+public static void cleaningStatusUpdate(
+        CleaningStatusUpdated cleaningStatusUpdated
+    ) {
+        System.out.println("CleaningStatusUpdated Object" + cleaningStatusUpdated.toString());
+        repository().findById(cleaningStatusUpdated.getRoomId()).ifPresent(room -> {
+            room.setCleaned(true); // 청소 상태 업데이트
+            System.out.println("cleaningStatusUpdated : " + room.toString());
+            repository().save(room);
+        });
+    }
+```
