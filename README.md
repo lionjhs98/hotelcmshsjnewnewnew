@@ -224,10 +224,13 @@ HousekeeperTaskListViewHandler.java 통해 구현
     }
 
 
-### 동기식 호출(Sync)
--
-1. Room
+### 동기식 호출(Sync, Feign Client)
+동기식 호출을 하는 경우는 Reservation에서 발생한 이벤트를 통해 assignstatus의 하우스키퍼를 배정하는 이벤트가 생성되는 경우입니다. 동기식 호출을 사용하면 청소부가 정상적으로 배정되었는지 실시간으로 확인할 수 있으며, 문제가 발생할 경우 즉시 대응할 수 있습니다. 이러한 방식은 특히 예약이 확정되기 전에 모든 관련 작업이 완료되어야 하는 시나리오에서 유리하며, 트랜잭션의 일관성을 보장하여 예약과 청소부 배정이 올바르게 처리되도록 돕습니다.
 
+1. **(Reservation -> assigningstatus)**
+> Reservation에서 객실 예약을 생성하면, Room에 저장되어있는 객실이 Checkin 완료, 및 Clean이 필요한 상태로 업데이트되어야 합니다. 
+
+아래의 코드는 @FeignClient를 통해 Reservation 서비스에서 assigningstatus를 연결한 코드입니다.
 ```
 @FeignClient(name = "assigningstatus", url = "${api.url.assigningstatus}")
 public interface AssignHouseKeeperService {
@@ -237,7 +240,7 @@ public interface AssignHouseKeeperService {
     );
 }
 ```
-
+위의 코드를 통해 두가지의 서비스를 연결한 후 "객실 예약"이라는 이벤트가 reservation 서비스에서 일어남과 동시에 assigningstatus에서 Host가 객실에 청소부를 배정할 수 있는 기능이 생성이 됩니다.
 
 ```
 hotelcmshsjnewnew.external.AssignHouseKeeper assignHouseKeeper = new hotelcmshsjnewnew.external.AssignHouseKeeper();
