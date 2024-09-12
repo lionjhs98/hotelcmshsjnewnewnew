@@ -8,6 +8,8 @@ import java.util.Date;
 import java.util.List;
 import javax.persistence.*;
 import lombok.Data;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Entity
 @Table(name = "Accomodation_table")
@@ -22,10 +24,10 @@ public class Accomodation {
     private Long roomId;
 
     @Embedded
-    private DateTime checkInTime;
+    private Date checkInTime;
 
     @Embedded
-    private DateTime checkOutTime;
+    private Date checkOutTime;
 
     @PostPersist
     public void onPostPersist() {
@@ -38,6 +40,11 @@ public class Accomodation {
         // it is NOT A GOOD PRACTICE. instead, Event-Policy mapping is recommended.
 
         hotelcmshsjnewnew.external.AssignHouseKeeper assignHouseKeeper = new hotelcmshsjnewnew.external.AssignHouseKeeper();
+        assignHouseKeeper.setAccomodationId(accomodationId);
+        assignHouseKeeper.setRoomId(roomId);
+        System.out.println("Room ID " + roomId + " has been assigned to the housekeeper.");
+        //assignHouseKeeper.setHousekeeperId();
+
         // mappings goes here
         ReservationApplication.applicationContext
             .getBean(hotelcmshsjnewnew.external.AssignHouseKeeperService.class)

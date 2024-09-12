@@ -66,7 +66,7 @@
                                 color="primary"
                                 style="font-weight:500; font-size:20px; padding:15px; border:solid 2px; max-width:250px; overflow:hidden"
                             >
-                                AssignHouseKeeper 등록
+                                하우스키퍼 배정
                             </v-btn>
                         </v-card-actions>
                     </v-card>

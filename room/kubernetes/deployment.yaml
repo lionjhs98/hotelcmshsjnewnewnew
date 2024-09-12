@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: room
-          image: "username/room:latest"
+          image: "hueylee/room:2409121"
           ports:
             - containerPort: 8080
           readinessProbe:

@@ -37,28 +37,6 @@ public class HousekeeperTaskListViewHandler {
             e.printStackTrace();
         }
     }
-    @StreamListener(KafkaProcessor.INPUT)
-    public void when_then_CREATE_ (@Payload  ) {
-        try {
-
-            if (!.validate()) return;
-
-            // view 객체 생성
-            HousekeeperTaskList housekeeperTaskList = new HousekeeperTaskList();
-            // view 객체에 이벤트의 Value 를 set 함
-            housekeeperTaskList.setCleaned(.getCleaned());
-            housekeeperTaskList.setFoundLostItem(.getFoundLostItem());
-            housekeeperTaskList.set();
-            // view 레파지 토리에 save
-            housekeeperTaskListRepository.save(housekeeperTaskList);
-
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-    }
-
-
-
 
 //>>> DDD / CQRS
 }

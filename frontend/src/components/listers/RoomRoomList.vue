@@ -1,6 +1,6 @@
 <template>
     <div>
-    <h1>Room</h1>
+    <h1>객실 관리</h1>
         <v-row>
             <v-card
                 class="mx-auto"
@@ -26,7 +26,7 @@
                         color="primary"
                         style="font-weight:500; font-size:20px; padding:15px; border:solid 2px; max-width:250px; overflow:hidden"
                     >
-                        Room 등록
+                        객실 정보 등록
                     </v-btn>
                 </v-card-actions>
             </v-card>

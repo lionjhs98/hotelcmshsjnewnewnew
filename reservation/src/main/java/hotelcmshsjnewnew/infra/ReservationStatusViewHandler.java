@@ -2,9 +2,10 @@ package hotelcmshsjnewnew.infra;
 
 import hotelcmshsjnewnew.config.kafka.KafkaProcessor;
 import hotelcmshsjnewnew.domain.*;
-import java.io.IOException;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.stream.annotation.StreamListener;
 import org.springframework.messaging.handler.annotation.Payload;
@@ -31,9 +32,10 @@ public class ReservationStatusViewHandler {
                 checkInInfoRegistered.getAccomodationId()
             );
             reservationStatus.setRoomId(checkInInfoRegistered.getRoomId());
-            reservationStatus.setCheckedInAt(
-                Date.valueOf(checkInInfoRegistered.getCheckedInAt())
-            );
+
+            Date utilDate = checkInInfoRegistered.getCheckInTime(); // Date 타입의 변수
+            reservationStatus.setCheckInTime(utilDate);
+
             // view 레파지 토리에 save
             reservationStatusRepository.save(reservationStatus);
         } catch (Exception e) {
@@ -55,9 +57,9 @@ public class ReservationStatusViewHandler {
                 checkoutInfoRegistered.getAccomodationId()
             );
             reservationStatus.setRoomId(checkoutInfoRegistered.getRoomId());
-            reservationStatus.setCheckedOutAt(
-                Date.valueOf(checkoutInfoRegistered.getCheckedOutAt())
-            );
+
+            Date utilDate = checkoutInfoRegistered.getCheckOutTime(); // Date 타입의 변수
+            reservationStatus.setCheckOutTime(utilDate);
             // view 레파지 토리에 save
             reservationStatusRepository.save(reservationStatus);
         } catch (Exception e) {

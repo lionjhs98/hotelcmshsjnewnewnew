@@ -47,22 +47,12 @@ public class CleaningStatus {
     ) {
         //implement business logic here:
 
-        /** Example 1:  new item 
         CleaningStatus cleaningStatus = new CleaningStatus();
+        cleaningStatus.accomodationId = housekeeperAssigned.getAccomodationId();
+        cleaningStatus.housekeeperId = housekeeperAssigned.getHousekeeperId();
+        cleaningStatus.roomId = housekeeperAssigned.getRoomId();
+        cleaningStatus.cleaned = false;
         repository().save(cleaningStatus);
-
-        */
-
-        /** Example 2:  finding and process
-        
-        repository().findById(housekeeperAssigned.get???()).ifPresent(cleaningStatus->{
-            
-            cleaningStatus // do something
-            repository().save(cleaningStatus);
-
-
-         });
-        */
 
     }
     //>>> Clean Arch / Port Method

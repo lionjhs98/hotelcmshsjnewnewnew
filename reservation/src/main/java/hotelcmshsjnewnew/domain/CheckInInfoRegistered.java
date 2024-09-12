@@ -12,7 +12,7 @@ import lombok.*;
 public class CheckInInfoRegistered extends AbstractEvent {
 
     private Long accomodationId;
-    private DateTime checkInTime;
+    private Date checkInTime;
     private Long roomId;
 
     public CheckInInfoRegistered(Accomodation aggregate) {

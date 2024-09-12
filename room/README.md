@@ -1,67 +1,102 @@
-# room
+# HotelCMS 프로젝트
 
-## Running in local development environment
+## 프로젝트 개요
+**HotelCMS**는 KT의 **GIGA Genie HOTEL** 서비스를 개선하기 위해 개발된 호텔 관리 시스템입니다. 이 시스템은 호텔 관리자가 청소 인력(하우스키퍼)을 객실에 배정하고, 배정된 인력이 청소를 완료하면 상태를 업데이트할 수 있도록 하여, 호텔의 체크인/체크아웃 및 청소 관리 업무를 효율적으로 처리할 수 있게 합니다. 이를 통해 관리자는 객실의 **청소 상태**, **체크인 상태** 등을 실시간으로 확인하고 관리할 수 있습니다.
 
+## 주요 기능
+
+### 1. Host 기능
+- **객실 정보 관리**: 호텔 관리자는 각 객실의 기본 정보(청소 상태, 체크인 상태 등)를 확인할 수 있으며, 정보가 실시간으로 반영됩니다.
+- **체크인 정보 등록**: 호텔 관리자는 고객의 체크인 정보를 등록할 수 있으며, 이 과정에서 체크인 시간이 시스템에 반영되고 객실의 체크인 상태가 업데이트됩니다.
+- **체크아웃 정보 등록**: 호텔 관리자는 고객의 체크아웃 정보를 등록할 수 있으며, 체크아웃 시간이 시스템에 반영됩니다.
+- **예약 상태 조회**: 호텔 관리자는 숙소의 예약 상태(객실 ID, 체크인/체크아웃 시간 등)를 실시간으로 조회할 수 있습니다.
+- **하우스키퍼 배정**: 호텔 관리자는 특정 객실에 하우스키퍼를 배정하고, 필요 시 이를 수정할 수 있습니다.
+
+### 2. Housekeeper 기능
+- **배정 내역 확인**: 하우스키퍼는 자신에게 배정된 객실 목록과 상태를 조회할 수 있습니다.
+- **청소 상태 업데이트**: 청소가 완료된 후 하우스키퍼는 시스템에 청소 상태를 업데이트하여 실시간으로 반영합니다.
+
+## 비기능적 요구사항
+
+### 1. 트랜잭션 관리
+- **예약 트랜잭션 처리**: 청소가 완료되지 않은 방은 예약할 수 없으며, 청소 상태를 즉시 확인한 후 예약이 가능해야 합니다.
+- **즉시성 보장**: 체크인 및 청소 완료 시 객실의 상태가 즉각적으로 업데이트되어야 하며, 이를 통해 사용자에게 최신 정보를 제공하고 오류를 방지합니다.
+
+### 2. 데이터 조회 성능
+- **정보 일괄 조회**: 시스템은 모든 방의 청소 상태, 체크인 상태 등의 정보를 한 번에 확인할 수 있도록 지원해야 합니다. 효율적인 데이터 구조와 인덱싱을 통해 조회 성능을 최적화해야 합니다.
+- **실시간 정보 반영**: 청소 상태나 체크인 상태가 변경되면 그 정보가 실시간으로 반영되어야 하며, 사용자에게 최신 정보를 제공할 수 있도록 **이벤트 기반 아키텍처**를 적용합니다.
+
+
+## 이벤트 스토밍 다이어그램
+
+다음은 MSA에서 **이벤트 스토밍**을 통해 각 모듈 간 이벤트 흐름을 시각화한 다이어그램입니다.
+
+![이벤트 스토밍 다이어그램](path_to_event_storming_image)
+
+### Hotel CMS 비즈니스 로직 흐름
+
+1. **메뉴 - 객실 등록** : 호스트가 room을 등록한다(crud 중 c)
+2. **메뉴 - 숙박 등록** : 호스트가 존재하는 객실들에 대해 숙박 내역을 등록한다(crud 중 c) - accomodationId, roomId, 체크인/아웃 시간 (registerCheckInInfo -> CheckInInfoRegistered)
+3. **메뉴 - 객실 등록** : 호스트가 숙박 내역을 등록하면(CheckInInfoRegistered), 등록된 객실의 checkedIn 상태가 true로, cleaned 상태가 false로 자동으로 바뀐다. (RoomStatusUpdate)
+4. **메뉴 - 하우스키퍼 배정** : 숙박을 등록하는 동시에, 하우스키퍼 배정 메뉴에 카드가 생성된다(각 room에 대한) (Req/Res)
+5. **메뉴 - 하우스키퍼 배정** : 호스트는 생성된 카드에 수정을 눌러서 하우스키퍼를 배정한다(하우스키퍼 id 작성) (assignHouseKeeper -> HouseKeeperAssigned)
+6. **메뉴 - 청소 상태 변경** : 하우스키퍼가 배정되면, 청소상태 변경 메뉴에서 자동으로 내역을 확인할 수 있다 (updateAssigningStatus) -> 근데 내역이 안뜸. 로직은 작성되어 있고, 프론트 문제인것으로 보임
+7. **메뉴 - 청소 상태 변경** : 하우스키퍼는 청소를 완료하면, 생성된 내역(카드)에서 수정 버튼을 눌러서 청소 상태를 완료로 변경(true)할 수 있다. (updateCleaningStatus -> CleaningStatusUpdated)
+8. **메뉴 - 객실 등록** : 하우스키퍼가 청소 상태를 변경하면, 자동으로 객실(Room)의 cleaned 속성이 false에서 true로 바뀐다. (RoomCleanUpdate)
+
+
+
+
+
+## 시스템 아키텍처
+
+### 헥사고날 아키텍처 (Hexagonal Architecture)
+이 프로젝트는 **헥사고날 아키텍처**를 기반으로 설계되었습니다. 각 모듈은 독립적으로 동작하며, 이벤트 기반으로 상호작용하여 효율적인 데이터 처리를 보장합니다. **CQRS**와 **Event Driven Architecture** 패턴을 적용하여 성능 최적화 및 실시간 데이터 동기화를 구현하였습니다.
+
+### 아키텍처 다이어그램
+다음은 시스템의 **MSA 기반 이벤트 스토밍**을 반영한 헥사고날 아키텍처 다이어그램입니다.
+
+![헥사고날 아키텍처](path_to_hexagonal_architecture_image)
+
+### 이벤트 흐름
+시스템의 주요 이벤트 흐름은 다음과 같습니다.
+
+- **CheckInInfoRegistered 이벤트**: 체크인 정보가 등록되면 객실의 상태가 즉시 업데이트됩니다.
+- **CheckoutInfoRegistered 이벤트**: 체크아웃 정보가 등록되면 객실의 상태가 즉시 반영되며, 해당 정보가 Host 및 Housekeeper에게 실시간으로 제공됩니다.
+- **HousekeeperAssigned 이벤트**: 하우스키퍼가 특정 객실에 배정되면, Host 및 Housekeeper는 배정된 정보를 실시간으로 확인할 수 있습니다.
+- **CleaningStatusUpdated 이벤트**: 하우스키퍼가 청소 상태를 업데이트하면, Host는 그 정보를 실시간으로 확인할 수 있습니다.
+
+
+
+## 실행 방법
+### 로컬
+각 BC별로 대변되는 마이크로 서비스들을 스프링부트로 구현하였습니다. 구현한 각 서비스들의 포트넘버는 아래와 같습니다.
+
+```
+      routes:
+        - id: reservation
+          uri: http://localhost:8082
+          predicates:
+            - Path=/accomodations/**, 
+        - id: assigningstatus
+          uri: http://localhost:8083
+          predicates:
+            - Path=/assignHouseKeepers/**, 
+        - id: room
+          uri: http://localhost:8084
+          predicates:
+            - Path=/rooms/**, 
+        - id: cleaningstatus
+          uri: http://localhost:8085
+          predicates:
+            - Path=/cleaningStatuses/**, 
+        - id: frontend
+          uri: http://localhost:8080
+          predicates:
+            - Path=/**
+```
+서비스들의 실행 방법은 아래와 같습니다.
 ```
 mvn spring-boot:run
 ```
-
-## Packaging and Running in docker environment
-
-```
-mvn package -B -DskipTests
-docker build -t username/room:v1 .
-docker run username/room:v1
-```
-
-## Push images and running in Kubernetes
-
-```
-docker login 
-# in case of docker hub, enter your username and password
-
-docker push username/room:v1
-```
-
-Edit the deployment.yaml under the /kubernetes directory:
-```
-    spec:
-      containers:
-        - name: room
-          image: username/room:latest   # change this image name
-          ports:
-            - containerPort: 8080
-
-```
-
-Apply the yaml to the Kubernetes:
-```
-kubectl apply -f kubernetes/deployment.yaml
-```
-
-See the pod status:
-```
-kubectl get pods -l app=room
-```
-
-If you have no problem, you can connect to the service by opening a proxy between your local and the kubernetes by using this command:
-```
-# new terminal
-kubectl port-forward deploy/room 8080:8080
-
-# another terminal
-http localhost:8080
-```
-
-If you have any problem on running the pod, you can find the reason by hitting this:
-```
-kubectl logs -l app=room
-```
-
-Following problems may be occurred:
-
-1. ImgPullBackOff:  Kubernetes failed to pull the image with the image name you've specified at the deployment.yaml. Please check your image name and ensure you have pushed the image properly.
-1. CrashLoopBackOff: The spring application is not running properly. If you didn't provide the kafka installation on the kubernetes, the application may crash. Please install kafka firstly:
-
-https://labs.msaez.io/#/courses/cna-full/full-course-cna/ops-utility
 

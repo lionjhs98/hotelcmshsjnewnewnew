@@ -37,28 +37,6 @@ public class HousekeepingAssignmentInformationViewHandler {
             e.printStackTrace();
         }
     }
-    @StreamListener(KafkaProcessor.INPUT)
-    public void when_then_CREATE_ (@Payload  ) {
-        try {
-
-            if (!.validate()) return;
-
-            // view 객체 생성
-            HousekeepingAssignmentInformation housekeepingAssignmentInformation = new HousekeepingAssignmentInformation();
-            // view 객체에 이벤트의 Value 를 set 함
-            housekeepingAssignmentInformation.setHousekeepingId(.getHousekeepingId());
-            housekeepingAssignmentInformation.setHousekeeperId(.getHousekeeperId());
-            housekeepingAssignmentInformation.setAccomodationId(.getAccomodationId());
-            housekeepingAssignmentInformation.setCleaned(.getCleaned());
-            housekeepingAssignmentInformation.setFoundLostItem(.getFoundLostItem());
-            housekeepingAssignmentInformation.set();
-            // view 레파지 토리에 save
-            housekeepingAssignmentInformationRepository.save(housekeepingAssignmentInformation);
-
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-    }
 
 
 

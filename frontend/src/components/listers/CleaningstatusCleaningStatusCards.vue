@@ -66,7 +66,7 @@
                                 color="primary"
                                 style="font-weight:500; font-size:20px; padding:15px; border:solid 2px; max-width:250px; overflow:hidden"
                             >
-                                CleaningStatus 등록
+                                청소 상태 업데이트
                             </v-btn>
                         </v-card-actions>
                     </v-card>

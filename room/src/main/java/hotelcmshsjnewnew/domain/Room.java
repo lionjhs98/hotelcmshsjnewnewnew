@@ -5,6 +5,8 @@ import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 import javax.persistence.*;
+import javax.transaction.Transactional;
+
 import lombok.Data;
 
 @Entity
@@ -32,54 +34,29 @@ public class Room {
         return roomRepository;
     }
 
-    //<<< Clean Arch / Port Method
+    //@Transactional
     public static void cleaningStatusUpdate(
         CleaningStatusUpdated cleaningStatusUpdated
     ) {
-        //implement business logic here:
-
-        /** Example 1:  new item 
-        Room room = new Room();
-        repository().save(room);
-
-        */
-
-        /** Example 2:  finding and process
-        
-        repository().findById(cleaningStatusUpdated.get???()).ifPresent(room->{
-            
-            room // do something
+        System.out.println("CleaningStatusUpdated Object" + cleaningStatusUpdated.toString());
+        repository().findById(cleaningStatusUpdated.getRoomId()).ifPresent(room -> {
+            room.setCleaned(true); // 청소 상태 업데이트
+            System.out.println("cleaningStatusUpdated : " + room.toString());
             repository().save(room);
-
-
-         });
-        */
-
+        });
     }
 
-    //>>> Clean Arch / Port Method
-    //<<< Clean Arch / Port Method
+    //@Transactional
     public static void checkinStatusUpdate(
         CheckInInfoRegistered checkInInfoRegistered
-    ) {
-        //implement business logic here:
-
-        /** Example 1:  new item 
-        Room room = new Room();
-        repository().save(room);
-
-        */
-
-        /** Example 2:  finding and process
-        
-        repository().findById(checkInInfoRegistered.get???()).ifPresent(room->{
-            
-            room // do something
+    ) { 
+        System.out.println("CheckInInfoRegistered Object" + checkInInfoRegistered.toString());
+        repository().findById(checkInInfoRegistered.getRoomId()).ifPresent(room -> {
+            room.setCheckedIn(true); // 체크인 상태 업데이트
+            room.setCleaned(false); // 청소 상태 업데이트
+            System.out.println("checkInInfoRegistered : " + room.toString());
             repository().save(room);
-
-
-         });
-        */
+        });
 
     }
     //>>> Clean Arch / Port Method
