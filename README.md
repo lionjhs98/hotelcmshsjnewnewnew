@@ -1,92 +1,106 @@
-# 
+# Hotel 관리시스템 프로젝트
 
-## Model
-www.msaez.io/#/storming/hotelcms
+## 프로젝트 개요
+**Hotel 관리시스템**는 KT의 **GIGA Genie HOTEL** 서비스를 개선하기 위해 개발된 호텔 관리 시스템입니다. 이 시스템은 호텔 관리자가 체크인/체크아웃 내역을 등록하고, 청소 인력(하우스키퍼)을 객실에 배정하고, 배정된 인력이 청소를 완료하면 상태를 업데이트할 수 있도록 했습니다. 
 
-## Before Running Services
-### Make sure there is a Kafka server running
+기존에는 단순히 호텔 관리자만이 시스템에 접속해서 호텔의 청소 상태를 변경할 수 있었지만, <u>**호텔의 청소 업무를 수정하는 Housekeeper인력 또한 시스템에 접속해 직접 호텔 청소 완료 상태를 업데이트할 수 있는 기능**</u>을 추가하였습니다. 
+
+이를 통해 관리자는 Housekeeper가 등록한 청소 완료 상태를 실시간으로 확인할 수 있습니다. 
+
+## 주요 기능
+
+### 1. Host 기능
+- **객실 정보 관리**: 호텔 관리자는 각 객실의 기본 정보(청소 상태, 체크인 상태 등)를 확인할 수 있으며, 정보가 실시간으로 반영됩니다.
+- **체크인 정보 등록**: 호텔 관리자는 고객의 체크인 정보를 등록할 수 있으며, 이 과정에서 체크인 시간이 시스템에 반영되고 객실의 체크인 상태가 업데이트됩니다.
+- **체크아웃 정보 등록**: 호텔 관리자는 고객의 체크아웃 정보를 등록할 수 있으며, 체크아웃 시간이 시스템에 반영됩니다.
+- **예약 상태 조회**: 호텔 관리자는 숙소의 예약 상태(객실 ID, 체크인/체크아웃 시간 등)를 실시간으로 조회할 수 있습니다.
+- **하우스키퍼 배정**: 호텔 관리자는 특정 객실에 하우스키퍼를 배정하고, 필요 시 이를 수정할 수 있습니다.
+
+### 2. Housekeeper 기능
+- **배정 내역 확인**: 하우스키퍼는 자신에게 배정된 객실 목록과 상태를 조회할 수 있습니다.
+- **청소 상태 업데이트**: 청소가 완료된 후 하우스키퍼는 시스템에 청소 상태를 업데이트하여 실시간으로 반영합니다.
+
+## 비기능적 요구사항
+
+### 1. 트랜잭션 관리
+- **예약 트랜잭션 처리**: 청소가 완료되지 않은 방은 예약할 수 없으며, 청소 상태를 즉시 확인한 후 예약이 가능해야 합니다.
+- **즉시성 보장**: 체크인 및 청소 완료 시 객실의 상태가 즉각적으로 업데이트되어야 하며, 이를 통해 사용자에게 최신 정보를 제공하고 오류를 방지합니다.
+
+### 2. 데이터 조회 성능
+- **정보 일괄 조회**: 시스템은 모든 방의 청소 상태, 체크인 상태 등의 정보를 한 번에 확인할 수 있도록 지원해야 합니다. 효율적인 데이터 구조와 인덱싱을 통해 조회 성능을 최적화해야 합니다.
+- **실시간 정보 반영**: 청소 상태나 체크인 상태가 변경되면 그 정보가 실시간으로 반영되어야 하며, 사용자에게 최신 정보를 제공할 수 있도록 **이벤트 기반 아키텍처**를 적용합니다.
+
+
+## 이벤트 스토밍 다이어그램
+
+다음은 MSA에서 **이벤트 스토밍**을 통해 각 모듈 간 이벤트 흐름을 시각화한 다이어그램입니다.
+
+![이벤트 스토밍 다이어그램](path_to_event_storming_image)
+
+### Hotel CMS 비즈니스 로직 흐름
+
+1. **메뉴 - 객실 등록** : 호스트가 room을 등록한다(crud 중 c)
+2. **메뉴 - 숙박 등록** : 호스트가 존재하는 객실들에 대해 숙박 내역을 등록한다(crud 중 c) - accomodationId, roomId, 체크인/아웃 시간 (registerCheckInInfo -> CheckInInfoRegistered)
+3. **메뉴 - 객실 등록** : 호스트가 숙박 내역을 등록하면(CheckInInfoRegistered), 등록된 객실의 checkedIn 상태가 true로, cleaned 상태가 false로 자동으로 바뀐다. (RoomStatusUpdate)
+4. **메뉴 - 하우스키퍼 배정** : 숙박을 등록하는 동시에, 하우스키퍼 배정 메뉴에 카드가 생성된다(각 room에 대한) (Req/Res)
+5. **메뉴 - 하우스키퍼 배정** : 호스트는 생성된 카드에 수정을 눌러서 하우스키퍼를 배정한다(하우스키퍼 id 작성) (assignHouseKeeper -> HouseKeeperAssigned)
+6. **메뉴 - 청소 상태 변경** : 하우스키퍼가 배정되면, 청소상태 변경 메뉴에서 자동으로 내역을 확인할 수 있다 (updateAssigningStatus) -> 근데 내역이 안뜸. 로직은 작성되어 있고, 프론트 문제인것으로 보임
+7. **메뉴 - 청소 상태 변경** : 하우스키퍼는 청소를 완료하면, 생성된 내역(카드)에서 수정 버튼을 눌러서 청소 상태를 완료로 변경(true)할 수 있다. (updateCleaningStatus -> CleaningStatusUpdated)
+8. **메뉴 - 객실 등록** : 하우스키퍼가 청소 상태를 변경하면, 자동으로 객실(Room)의 cleaned 속성이 false에서 true로 바뀐다. (RoomCleanUpdate)
+
+
+
+
+
+## 시스템 아키텍처
+
+### 헥사고날 아키텍처 (Hexagonal Architecture)
+이 프로젝트는 **헥사고날 아키텍처**를 기반으로 설계되었습니다. 각 모듈은 독립적으로 동작하며, 이벤트 기반으로 상호작용하여 효율적인 데이터 처리를 보장합니다. **CQRS**와 **Event Driven Architecture** 패턴을 적용하여 성능 최적화 및 실시간 데이터 동기화를 구현하였습니다.
+
+### 아키텍처 다이어그램
+다음은 시스템의 **MSA 기반 이벤트 스토밍**을 반영한 헥사고날 아키텍처 다이어그램입니다.
+
+![헥사고날 아키텍처](path_to_hexagonal_architecture_image)
+
+### 이벤트 흐름
+시스템의 주요 이벤트 흐름은 다음과 같습니다.
+
+- **CheckInInfoRegistered 이벤트**: 체크인 정보가 등록되면 객실의 상태가 즉시 업데이트됩니다.
+- **CheckoutInfoRegistered 이벤트**: 체크아웃 정보가 등록되면 객실의 상태가 즉시 반영되며, 해당 정보가 Host 및 Housekeeper에게 실시간으로 제공됩니다.
+- **HousekeeperAssigned 이벤트**: 하우스키퍼가 특정 객실에 배정되면, Host 및 Housekeeper는 배정된 정보를 실시간으로 확인할 수 있습니다.
+- **CleaningStatusUpdated 이벤트**: 하우스키퍼가 청소 상태를 업데이트하면, Host는 그 정보를 실시간으로 확인할 수 있습니다.
+
+
+
+## 실행 방법
+### 로컬
+각 BC별로 대변되는 마이크로 서비스들을 스프링부트로 구현하였습니다. 구현한 각 서비스들의 포트넘버는 아래와 같습니다.
+
 ```
-cd kafka
-docker-compose up
+      routes:
+        - id: reservation
+          uri: http://localhost:8082
+          predicates:
+            - Path=/accomodations/**, 
+        - id: assigningstatus
+          uri: http://localhost:8083
+          predicates:
+            - Path=/assignHouseKeepers/**, 
+        - id: room
+          uri: http://localhost:8084
+          predicates:
+            - Path=/rooms/**, 
+        - id: cleaningstatus
+          uri: http://localhost:8085
+          predicates:
+            - Path=/cleaningStatuses/**, 
+        - id: frontend
+          uri: http://localhost:8080
+          predicates:
+            - Path=/**
 ```
-- Check the Kafka messages:
+서비스들의 실행 방법은 아래와 같습니다.
 ```
-cd infra
-docker-compose exec -it kafka /bin/bash
-cd /bin
-./kafka-console-consumer --bootstrap-server localhost:9092 --topic
-```
-
-## Run the backend micro-services
-See the README.md files inside the each microservices directory:
-
-- reservation
-- assigningstatus
-- room
-- cleaningstatus
-
-
-## Run API Gateway (Spring Gateway)
-```
-cd gateway
 mvn spring-boot:run
-```
-
-## Test by API
-- reservation
-```
- http :8088/accomodations accomodationId="accomodationId" roomId="roomId" checkInTime="checkInTime" checkOutTime="checkOutTime" 
-```
-- assigningstatus
-```
- http :8088/assignHouseKeepers housekeepingId="housekeepingId" accomodationId="accomodationId" housekeeperId="housekeeperId" roomId="roomId" 
-```
-- room
-```
- http :8088/rooms roomId="roomId" cleaned="cleaned" roomName="roomName" roomType="roomType" checkedIn="checkedIn" 
-```
-- cleaningstatus
-```
- http :8088/cleaningStatuses housekeepingId="housekeepingId" accomodationId="accomodationId" housekeeperId="housekeeperId" cleaned="cleaned" roomId="roomId" 
-```
-
-
-## Run the frontend
-```
-cd frontend
-npm i
-npm run serve
-```
-
-## Test by UI
-Open a browser to localhost:8088
-
-## Required Utilities
-
-- httpie (alternative for curl / POSTMAN) and network utils
-```
-sudo apt-get update
-sudo apt-get install net-tools
-sudo apt install iputils-ping
-pip install httpie
-```
-
-- kubernetes utilities (kubectl)
-```
-curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
-```
-
-- aws cli (aws)
-```
-curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-unzip awscliv2.zip
-sudo ./aws/install
-```
-
-- eksctl 
-```
-curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
-sudo mv /tmp/eksctl /usr/local/bin
 ```
 
