@@ -2,7 +2,7 @@
 
     <v-card outlined>
         <v-card-title>
-            HousekeepingAssignmentInformation # {{$route.params.id }}
+            Housekeeping Assignment Information # {{$route.params.id }}
         </v-card-title>
 
         <v-card-text>

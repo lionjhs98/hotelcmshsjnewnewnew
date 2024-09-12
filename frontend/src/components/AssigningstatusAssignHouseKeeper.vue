@@ -9,10 +9,10 @@
         </template>
 
         <v-card-title v-if="value._links">
-            AssignHouseKeeper # {{decode(value._links.self.href.split("/")[value._links.self.href.split("/").length - 1])}}
+            Assign HouseKeeper # {{decode(value._links.self.href.split("/")[value._links.self.href.split("/").length - 1])}}
         </v-card-title >
         <v-card-title v-else>
-            AssignHouseKeeper
+            Assign HouseKeeper
         </v-card-title >        
 
         <v-card-text>

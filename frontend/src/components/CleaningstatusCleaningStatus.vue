@@ -9,10 +9,10 @@
         </template>
 
         <v-card-title v-if="value._links">
-            CleaningStatus # {{decode(value._links.self.href.split("/")[value._links.self.href.split("/").length - 1])}}
+            Cleaning Status # {{decode(value._links.self.href.split("/")[value._links.self.href.split("/").length - 1])}}
         </v-card-title >
         <v-card-title v-else>
-            CleaningStatus
+            Cleaning Status
         </v-card-title >        
 
         <v-card-text>

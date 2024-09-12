@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: cleaningstatus
-          image: "hueylee/cleaningstatus:240912"
+          image: "hueylee/cleaningstatus:2409121"
           ports:
             - containerPort: 8080
           readinessProbe:

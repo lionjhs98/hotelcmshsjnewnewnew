@@ -35,7 +35,7 @@
 
 다음은 MSA에서 **이벤트 스토밍**을 통해 각 모듈 간 이벤트 흐름을 시각화한 다이어그램입니다.
 
-![이벤트 스토밍 다이어그램](path_to_event_storming_image)
+![이벤트스토밍](https://github.com/user-attachments/assets/2ead8fdb-10d7-40bc-8a00-84606dcc664b)
 
 ### Hotel CMS 비즈니스 로직 흐름
 
@@ -60,7 +60,8 @@
 ### 아키텍처 다이어그램
 다음은 시스템의 **MSA 기반 이벤트 스토밍**을 반영한 헥사고날 아키텍처 다이어그램입니다.
 
-![헥사고날 아키텍처](path_to_hexagonal_architecture_image)
+![헥사고날](https://github.com/user-attachments/assets/4a0ba2e8-006f-4351-ab8a-a1da140bec9a)
+
 
 ### 이벤트 흐름
 시스템의 주요 이벤트 흐름은 다음과 같습니다.

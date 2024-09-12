@@ -41,6 +41,9 @@
                     </v-btn>
                 </v-dialog>
 
+
+                <!--
+
                 <v-row>
                     <v-card
                         class="mx-auto"
@@ -71,6 +74,7 @@
                         </v-card-actions>
                     </v-card>
                 </v-row>
+                -->
             </div>
         </v-col>
         <v-row>

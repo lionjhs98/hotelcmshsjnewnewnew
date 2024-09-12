@@ -20,6 +20,7 @@ public class AssignHouseKeeper {
 
     private Long accomodationId;
 
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private Long housekeeperId;
 
     private Long roomId;
