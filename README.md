@@ -367,3 +367,122 @@ public static void cleaningStatusUpdate(
         });
     }
 ```
+
+## AKS 및 Docker 환경 설정
+
+**1. 리소스 그룹 생성 및 AKS 생성**
+- 리소스 그룹명: user05-rsrcgrp
+- 클러스터명: user55-aks
+ 
+**2. Azure CLI 환경 설정**
+- Azure Client 설치 및 Credential 설정
+```
+curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash 
+```
+- Kubernetes Client 설정
+```
+az aks get-credentials --resource-group user05-rsrcgrp --name user55-aks
+```
+**3. Docker hub 설정**
+
+먼저, 도커허브를 회원가입 한 후 계정명과 비밀번호를 기록해둡니다. 
+
+이후에, 터미널을 배포하고자 하는 소스 파일의 터미널을 오픈하여 아래의 문구를 작성합니다. 
+
+```
+Docker login
+```
+
+이후에 기록해둔 계정명과 패스워드를 입력하여 설정을 마무리합니다.
+
+
+
+## Docer Build 이미지 생성 및 배포
+
+**1. Docker Build 이미지 생성** 
+
+본격적으로 도커 및 AKS 환경 설정이 끝났다면, 모든 서비스에서 대해 도커 이미지를 생성(도커라이징)하고 저장소에 Push를 해야합니다.
+
+
+---
+
+우선, **프론트엔트**는 도커빌드 후 쿠버네티스에 반영하기 위해 다음 명령어를 실행합니다.
+
+```
+npm run build
+docker build -t hueylee/ui:stable .
+docker push hueylee/ui:stable
+```
+
+
+그 다음으로 마이크로서비스들이 EDA 통신하기 위한 Kafka 서버를 내 클러스터에 설치야 합니다. 
+
+예를 들어, **객실(Room) 서비스**의 경우, 다음과 같은 명령어를 실행합니다. 
+
+```
+     cd room
+mvn package -B -Dmaven.test.skip=true
+
+```
+
+**2. Docker Build 이미지 배포** 
+
+이후에 최상위 root 에 Dockerfile이 있는지 확인한 후, Dockerfile 파일이 있는 프로젝트 루트에서 아래 명령을 실행하여 도커라이징을 진행합니다.
+
+```
+docker build -t hueylee/room:배포날짜 .     
+docker image ls
+docker push hueylee/room:배포날짜 .     
+```
+
+이와 같은 방식으로, reservation, gateway, assigningstatus, cleaningstatus 도 각각 폴더별로 동일하게 도커 이미지를 생성하고 저장소에 Push하며 도커라이징을 진행합니다. 
+
+---
+결과적으로, 다음 이미지와 같이 도커 허브에 이미지가 배포됩니다. 
+
+
+
+## 클러스터 배포
+
+**1. 클러스터에 Event Store(kafka) 설치**
+
+Helm(패키지 인스톨러) 설치
+ 
+```
+curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 > get_helm.sh
+chmod 700 get_helm.sh
+./get_helm.sh    
+```
+
+helm으로 Kafka 설치
+
+```
+helm repo add bitnami https://charts.bitnami.com/bitnami
+helm repo update
+helm install my-kafka bitnami/kafka --version 23.0.5
+```
+
+**2. 객실관리 서비스 yaml로 배포**
+- room/kubernetes 폴더내의 deployment.yaml을 오픈한다.
+- image: push 한 이미지명으로 수정한다:
+hueylee/room:240913
+- 저장 후, apply 진행한다. 
+```
+kubectl apply -f kubernetes/deployment.yaml 
+
+kubectl apply -f kubernetes/service.yaml
+```
+- 배포 확인
+```
+kubectl get all
+```
+
+**3. reservation, gateway, assigningstatus, cleaningstatus, frontend도 동일작업 수행**
+- 다른 쿠버네티스의 폴더의 deployment 및 service 파일의 확장자가 yml, yaml 인지를 잘 확인하며 배포를 마무리합니다. 
+- 전부 배포가 완료되었다면 게이트 주소를 확인합니다. 
+```
+kubectl get svc
+```
+
+**4. 게이트 주소로 이동**
+- 이동 결과 개발한 호텔 객실 관리 서비스를 확인할 수 있습니다. 
