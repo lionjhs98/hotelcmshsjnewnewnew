@@ -434,12 +434,12 @@ docker build -t hueylee/room:배포날짜 .
 docker image ls
 docker push hueylee/room:배포날짜 .     
 ```
-
+<img width="1326" alt="배포4" src="https://github.com/user-attachments/assets/d9382e62-6a57-4b7a-a0a4-df98bd393ced">
 이와 같은 방식으로, reservation, gateway, assigningstatus, cleaningstatus 도 각각 폴더별로 동일하게 도커 이미지를 생성하고 저장소에 Push하며 도커라이징을 진행합니다. 
 
 ---
 결과적으로, 다음 이미지와 같이 도커 허브에 이미지가 배포됩니다. 
-
+<img width="1650" alt="배포2" src="https://github.com/user-attachments/assets/4e51b502-fed9-4ca4-a778-2b9526329818">
 
 
 ## 클러스터 배포
@@ -483,6 +483,8 @@ kubectl get all
 ```
 kubectl get svc
 ```
+<img width="791" alt="배포3" src="https://github.com/user-attachments/assets/5376966e-9200-4111-ab2e-6942b022fea1">
 
 **4. 게이트 주소로 이동**
-- 이동 결과 개발한 호텔 객실 관리 서비스를 확인할 수 있습니다. 
+- 이동 결과 개발한 호텔 객실 관리 서비스를 확인할 수 있습니다.
+  <img width="1677" alt="배포1" src="https://github.com/user-attachments/assets/d8016797-84e8-4eb3-a3c7-9f74caa973d0">
